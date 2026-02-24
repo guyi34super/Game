@@ -1,5 +1,7 @@
 import { AttackType, Severity, SecurityEvent, EventChoice, CompanyStats } from "./types";
 import { v4 as uuid } from "uuid";
+import type { LucideIcon } from "lucide-react";
+import { Fish, Lock, Skull, UserX, Zap, Drama, Package, Hammer, ScanEye, Syringe } from "lucide-react";
 
 type AttackTemplate = {
   type: AttackType;
@@ -370,18 +372,18 @@ export function generateAttack(stats: CompanyStats, tick: number): SecurityEvent
   };
 }
 
-export function getAttackIcon(type: AttackType): string {
-  const icons: Record<AttackType, string> = {
-    phishing: "🎣",
-    ransomware: "🔒",
-    zero_day: "💀",
-    insider_threat: "🕵️",
-    ddos: "🌊",
-    social_engineering: "🎭",
-    supply_chain: "📦",
-    brute_force: "🔨",
-    man_in_the_middle: "👤",
-    sql_injection: "💉",
+export function getAttackIcon(type: AttackType): LucideIcon {
+  const icons: Record<AttackType, LucideIcon> = {
+    phishing: Fish,
+    ransomware: Lock,
+    zero_day: Skull,
+    insider_threat: UserX,
+    ddos: Zap,
+    social_engineering: Drama,
+    supply_chain: Package,
+    brute_force: Hammer,
+    man_in_the_middle: ScanEye,
+    sql_injection: Syringe,
   };
   return icons[type];
 }

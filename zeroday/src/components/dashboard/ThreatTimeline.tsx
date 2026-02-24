@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { useGameStore } from "@/lib/store";
 import * as d3 from "d3";
 import { getSeverityColor } from "@/engine/attacks";
+import { BarChart3 } from "lucide-react";
 
 export default function ThreatTimeline() {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -87,7 +88,7 @@ export default function ThreatTimeline() {
 
   return (
     <div className="card-cyber p-4">
-      <h3 className="text-xs text-cyber-dim uppercase tracking-wider mb-2">📊 Threat Timeline</h3>
+      <h3 className="text-xs text-cyber-dim uppercase tracking-wider mb-2 flex items-center gap-2"><BarChart3 size={14} /> Threat Timeline</h3>
       <svg ref={svgRef} className="w-full" style={{ height: "120px" }} />
     </div>
   );

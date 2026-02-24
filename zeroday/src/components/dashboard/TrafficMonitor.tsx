@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useGameStore } from "@/lib/store";
 import * as d3 from "d3";
+import { Radio } from "lucide-react";
 
 export default function TrafficMonitor() {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -71,7 +72,7 @@ export default function TrafficMonitor() {
   return (
     <div className="card-cyber p-4">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-xs text-cyber-dim uppercase tracking-wider">📡 Live Traffic Monitor</h3>
+        <h3 className="text-xs text-cyber-dim uppercase tracking-wider flex items-center gap-2"><Radio size={14} /> Live Traffic Monitor</h3>
         <span className={`text-xs font-mono ${avgTraffic > 70 ? "text-neon-red" : avgTraffic > 40 ? "text-neon-yellow" : "text-neon-green"}`}>
           {avgTraffic.toFixed(1)}% avg
         </span>

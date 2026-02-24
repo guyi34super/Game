@@ -3,6 +3,7 @@
 import { useRef, useEffect } from "react";
 import { useGameStore } from "@/lib/store";
 import { GameLog } from "@/engine/types";
+import { ClipboardList } from "lucide-react";
 
 const LOG_COLORS: Record<GameLog["type"], string> = {
   info: "#8b949e",
@@ -32,7 +33,7 @@ export default function LogPanel() {
 
   return (
     <div className="card-cyber p-4">
-      <h3 className="text-xs text-cyber-dim uppercase tracking-wider mb-3">📋 System Logs</h3>
+      <h3 className="text-xs text-cyber-dim uppercase tracking-wider mb-3 flex items-center gap-2"><ClipboardList size={14} /> System Logs</h3>
       <div
         ref={scrollRef}
         className="bg-cyber-black rounded p-3 max-h-[300px] overflow-y-auto terminal-text"

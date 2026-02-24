@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { useGameStore } from "@/lib/store";
 import * as d3 from "d3";
 import { NetworkNode } from "@/engine/types";
+import { Globe } from "lucide-react";
 
 const NODE_COLORS: Record<NetworkNode["type"], string> = {
   server: "#00d4ff",
@@ -14,13 +15,16 @@ const NODE_COLORS: Record<NetworkNode["type"], string> = {
   cloud: "#00d4ff",
 };
 
-const NODE_ICONS: Record<NetworkNode["type"], string> = {
-  server: "🖥️",
-  workstation: "💻",
-  firewall: "🔥",
-  router: "🌐",
-  database: "🗄️",
-  cloud: "☁️",
+const svgIcon = (paths: string) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+
+const NODE_ICON_SVGS: Record<NetworkNode["type"], string> = {
+  server: svgIcon('<rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/>'),
+  workstation: svgIcon('<path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"/>'),
+  firewall: svgIcon('<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>'),
+  router: svgIcon('<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>'),
+  database: svgIcon('<path d="M22 12H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><line x1="6" x2="6.01" y1="16" y2="16"/><line x1="10" x2="10.01" y1="16" y2="16"/>'),
+  cloud: svgIcon('<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>'),
 };
 
 const STATUS_COLORS: Record<NetworkNode["status"], string> = {
@@ -146,11 +150,22 @@ export default function NetworkMap() {
       .attr("opacity", 0.3)
       .attr("stroke-dasharray", "3,3");
 
-    g.append("text")
-      .attr("text-anchor", "middle")
-      .attr("dy", "0.35em")
-      .attr("font-size", "16px")
-      .text((d) => NODE_ICONS[d.type]);
+    g.each(function (d) {
+      const fo = d3.select(this).append("foreignObject")
+        .attr("width", 20)
+        .attr("height", 20)
+        .attr("x", -10)
+        .attr("y", -10)
+        .attr("class", "pointer-events-none");
+      fo.append("xhtml:div")
+        .style("width", "100%")
+        .style("height", "100%")
+        .style("display", "flex")
+        .style("align-items", "center")
+        .style("justify-content", "center")
+        .style("color", NODE_COLORS[d.type])
+        .html(NODE_ICON_SVGS[d.type]);
+    });
 
     g.append("text")
       .attr("text-anchor", "middle")
@@ -172,7 +187,7 @@ export default function NetworkMap() {
   return (
     <div className="card-cyber p-4">
       <h3 className="text-xs text-cyber-dim uppercase tracking-wider mb-3 flex items-center gap-2">
-        🌐 Network Topology
+        <Globe size={14} /> Network Topology
         <span className="text-[10px] text-neon-green/50">(click nodes to patch)</span>
       </h3>
       <svg ref={svgRef} className="w-full" style={{ height: "350px" }} />

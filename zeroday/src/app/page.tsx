@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { Building2, Swords, FlaskConical, BarChart3 } from "lucide-react";
 
 const GLITCH_CHARS = "!@#$%^&*()_+-=[]{}|;':\",./<>?";
 
@@ -177,28 +178,28 @@ export default function HomePage() {
             // HOW TO PLAY
           </h2>
           <div className="grid md:grid-cols-2 gap-4">
-            {[
+            {([
               {
-                icon: "🏢",
+                icon: <Building2 size={28} />,
                 title: "Manage Your Company",
                 desc: "Oversee network infrastructure, employees, and security budget. Every decision impacts your defenses.",
               },
               {
-                icon: "⚔️",
+                icon: <Swords size={28} />,
                 title: "Respond to Attacks",
                 desc: "Face phishing, ransomware, zero-days, and more. Choose how to respond under time pressure.",
               },
               {
-                icon: "🔬",
+                icon: <FlaskConical size={28} />,
                 title: "Research & Upgrade",
                 desc: "Invest in AI detection, firewalls, encryption, and employee training through the research tree.",
               },
               {
-                icon: "📊",
+                icon: <BarChart3 size={28} />,
                 title: "Monitor Everything",
                 desc: "Track live traffic, vulnerability heatmaps, employee risk scores, and financial impact in real-time.",
               },
-            ].map((item) => (
+            ] as { icon: ReactNode; title: string; desc: string }[]).map((item) => (
               <div key={item.title} className="card-cyber p-5">
                 <div className="text-2xl mb-2">{item.icon}</div>
                 <h3 className="text-neon-green font-semibold mb-1">{item.title}</h3>

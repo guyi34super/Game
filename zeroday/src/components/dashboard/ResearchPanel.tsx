@@ -2,6 +2,8 @@
 
 import { useGameStore } from "@/lib/store";
 import { Research } from "@/engine/types";
+import type { LucideIcon } from "lucide-react";
+import { Search, ShieldCheck, Siren, Bot, FlaskConical, Check } from "lucide-react";
 
 const CATEGORY_COLORS: Record<Research["category"], string> = {
   detection: "#00d4ff",
@@ -10,11 +12,11 @@ const CATEGORY_COLORS: Record<Research["category"], string> = {
   ai: "#a855f7",
 };
 
-const CATEGORY_ICONS: Record<Research["category"], string> = {
-  detection: "🔍",
-  prevention: "🛡️",
-  response: "🚨",
-  ai: "🤖",
+const CATEGORY_ICONS: Record<Research["category"], LucideIcon> = {
+  detection: Search,
+  prevention: ShieldCheck,
+  response: Siren,
+  ai: Bot,
 };
 
 export default function ResearchPanel() {
@@ -30,7 +32,7 @@ export default function ResearchPanel() {
 
   return (
     <div className="card-cyber p-4">
-      <h3 className="text-xs text-cyber-dim uppercase tracking-wider mb-4">🔬 Research Lab</h3>
+      <h3 className="text-xs text-cyber-dim uppercase tracking-wider mb-4 flex items-center gap-2"><FlaskConical size={14} /> Research Lab</h3>
 
       <div className="space-y-5">
         {categories.map((cat) => {
@@ -41,7 +43,7 @@ export default function ResearchPanel() {
                 className="text-xs font-bold uppercase tracking-wider mb-2 flex items-center gap-1"
                 style={{ color: CATEGORY_COLORS[cat] }}
               >
-                {CATEGORY_ICONS[cat]} {cat}
+                {(() => { const Icon = CATEGORY_ICONS[cat]; return <Icon size={12} />; })()} {cat}
               </h4>
               <div className="space-y-2">
                 {items.map((r) => {
@@ -65,7 +67,7 @@ export default function ResearchPanel() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <span className="text-xs font-semibold text-cyber-text">{r.name}</span>
-                            {r.unlocked && <span className="text-[9px] text-neon-green">✓ COMPLETE</span>}
+                            {r.unlocked && <span className="text-[9px] text-neon-green flex items-center gap-0.5"><Check size={9} /> COMPLETE</span>}
                             {r.researching && <span className="text-[9px] text-neon-yellow animate-pulse">RESEARCHING...</span>}
                           </div>
                           <p className="text-[10px] text-cyber-dim mt-0.5">{r.description}</p>

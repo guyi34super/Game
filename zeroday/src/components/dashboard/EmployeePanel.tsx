@@ -1,6 +1,7 @@
 "use client";
 
 import { useGameStore } from "@/lib/store";
+import { Users } from "lucide-react";
 
 export default function EmployeePanel() {
   const { employees, trainEmployee, hireEmployee, company } = useGameStore();
@@ -12,7 +13,7 @@ export default function EmployeePanel() {
   return (
     <div className="card-cyber p-4">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-xs text-cyber-dim uppercase tracking-wider">👥 Employees ({employees.length})</h3>
+        <h3 className="text-xs text-cyber-dim uppercase tracking-wider flex items-center gap-2"><Users size={14} /> Employees ({employees.length})</h3>
         <div className="flex items-center gap-3 text-[10px]">
           <span className="text-cyber-dim">Avg Risk: <span className={`font-bold ${avgRisk > 40 ? "text-neon-red" : avgRisk > 20 ? "text-neon-yellow" : "text-neon-green"}`}>{avgRisk.toFixed(1)}</span></span>
           <span className="text-cyber-dim">Trained: <span className="text-neon-blue font-bold">{trainedCount}/{employees.length}</span></span>

@@ -3,6 +3,7 @@
 import { useGameStore } from "@/lib/store";
 import MiniCard from "@/components/ui/MiniCard";
 import StatBar from "@/components/ui/StatBar";
+import { AlertTriangle, ShieldCheck, Skull, DollarSign } from "lucide-react";
 
 export default function StatsOverview() {
   const { company, stats, events } = useGameStore();
@@ -14,15 +15,15 @@ export default function StatsOverview() {
         <MiniCard
           title="Active Threats"
           value={activeThreats}
-          icon="⚠️"
+          icon={<AlertTriangle size={18} />}
           color={activeThreats > 3 ? "#ff3e3e" : activeThreats > 0 ? "#ffd700" : "#00ff41"}
         />
-        <MiniCard title="Attacks Blocked" value={stats.attacksBlocked} icon="🛡️" color="#00ff41" />
-        <MiniCard title="Attacks Succeeded" value={stats.attacksSucceeded} icon="💀" color="#ff3e3e" />
+        <MiniCard title="Attacks Blocked" value={stats.attacksBlocked} icon={<ShieldCheck size={18} />} color="#00ff41" />
+        <MiniCard title="Attacks Succeeded" value={stats.attacksSucceeded} icon={<Skull size={18} />} color="#ff3e3e" />
         <MiniCard
           title="Money Lost"
           value={`$${stats.moneyLost.toLocaleString()}`}
-          icon="💸"
+          icon={<DollarSign size={18} />}
           color="#f97316"
         />
       </div>

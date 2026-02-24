@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useGameStore } from "@/lib/store";
+import { Bot } from "lucide-react";
 
 type RiskFactor = { factor: string; impact: number; recommendation: string };
 
@@ -141,7 +142,7 @@ export default function AIPanel() {
     <div className="card-cyber p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-xs text-cyber-dim uppercase tracking-wider flex items-center gap-2">
-          🤖 AI Threat Analysis
+          <Bot size={14} /> AI Threat Analysis
           <span className={`text-[9px] px-1.5 py-0.5 rounded ${mode === "online" ? "bg-neon-green/10 text-neon-green" : "bg-neon-yellow/10 text-neon-yellow"}`}>
             {mode === "online" ? "ML Engine" : "Heuristic"}
           </span>
@@ -157,7 +158,7 @@ export default function AIPanel() {
 
       {!analysis ? (
         <div className="text-center py-6 text-cyber-dim text-sm">
-          <div className="text-3xl mb-2">🤖</div>
+          <div className="text-3xl mb-2"><Bot size={32} /></div>
           <p>Click &quot;Run Analysis&quot; to scan your systems</p>
           <p className="text-[10px] mt-1">AI engine will assess threats, anomalies, and risk factors</p>
         </div>
