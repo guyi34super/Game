@@ -98,7 +98,8 @@ export default function SignInPage() {
     let i = 0;
     const interval = setInterval(() => {
       if (i < BOOT_LINES.length) {
-        setBootLines((prev) => [...prev, BOOT_LINES[i]]);
+        const line = BOOT_LINES[i];
+        setBootLines((prev) => [...prev, line]);
         i++;
       } else {
         clearInterval(interval);
