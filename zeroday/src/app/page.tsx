@@ -76,7 +76,8 @@ export default function HomePage() {
     let i = 0;
     const interval = setInterval(() => {
       if (i < BOOT_SEQUENCE.length) {
-        setBootLines((prev) => [...prev, BOOT_SEQUENCE[i]]);
+        const line = BOOT_SEQUENCE[i];
+        setBootLines((prev) => [...prev, line]);
         i++;
       } else {
         clearInterval(interval);
