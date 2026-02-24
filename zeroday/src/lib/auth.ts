@@ -7,13 +7,15 @@ import crypto from "crypto";
 
 const isProduction = process.env.NODE_ENV === "production";
 
+const DEV_SECRET = "zeroday-dev-secret-do-not-use-in-production";
+
 function getSecret(): string {
   const secret = process.env.NEXTAUTH_SECRET;
   if (!secret) {
     if (isProduction && process.env.NEXT_PHASE !== "phase-production-build") {
       throw new Error("NEXTAUTH_SECRET environment variable is required in production");
     }
-    return crypto.randomBytes(32).toString("hex");
+    return DEV_SECRET;
   }
   return secret;
 }

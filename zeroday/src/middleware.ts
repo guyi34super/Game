@@ -69,7 +69,7 @@ function getAuthSecret(): string {
     if (process.env.NODE_ENV === "production") {
       throw new Error("NEXTAUTH_SECRET is required in production");
     }
-    return "zeroday-dev-secret-change-in-production";
+    return "zeroday-dev-secret-do-not-use-in-production";
   }
   return secret;
 }
