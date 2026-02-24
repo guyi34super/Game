@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, ReactNode } from "react";
 import { useGameStore } from "@/lib/store";
+import { LayoutDashboard, Globe, Users, FlaskConical, ClipboardList } from "lucide-react";
 import TopBar from "@/components/dashboard/TopBar";
 import StatsOverview from "@/components/dashboard/StatsOverview";
 import EventPanel from "@/components/dashboard/EventPanel";
@@ -18,12 +19,12 @@ import FinancialTracker from "@/components/dashboard/FinancialTracker";
 
 type Tab = "overview" | "network" | "employees" | "research" | "logs";
 
-const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: "overview", label: "Dashboard", icon: "📊" },
-  { id: "network", label: "Network", icon: "🌐" },
-  { id: "employees", label: "Employees", icon: "👥" },
-  { id: "research", label: "Research", icon: "🔬" },
-  { id: "logs", label: "Logs", icon: "📋" },
+const TABS: { id: Tab; label: string; icon: ReactNode }[] = [
+  { id: "overview", label: "Dashboard", icon: <LayoutDashboard size={14} /> },
+  { id: "network", label: "Network", icon: <Globe size={14} /> },
+  { id: "employees", label: "Employees", icon: <Users size={14} /> },
+  { id: "research", label: "Research", icon: <FlaskConical size={14} /> },
+  { id: "logs", label: "Logs", icon: <ClipboardList size={14} /> },
 ];
 
 export default function GamePage() {

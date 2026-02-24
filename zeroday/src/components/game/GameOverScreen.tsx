@@ -2,6 +2,7 @@
 
 import { useGameStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
+import { Skull, RotateCcw, ArrowLeft } from "lucide-react";
 
 export default function GameOverScreen() {
   const { gameOverReason, stats, day, company, init } = useGameStore();
@@ -10,7 +11,7 @@ export default function GameOverScreen() {
   return (
     <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
       <div className="card-cyber p-8 max-w-lg w-full text-center border-neon-red/30">
-        <div className="text-6xl mb-4">💀</div>
+        <div className="text-6xl mb-4 flex justify-center"><Skull size={64} /></div>
         <h1 className="text-3xl font-bold text-neon-red glow-red mb-2">SYSTEM BREACH</h1>
         <h2 className="text-lg text-neon-red/70 mb-6">GAME OVER</h2>
 
@@ -50,13 +51,13 @@ export default function GameOverScreen() {
             }}
             className="btn-cyber text-base px-6 py-2"
           >
-            ↻ RETRY
+            <RotateCcw size={16} className="inline mr-1" /> RETRY
           </button>
           <button
             onClick={() => router.push("/")}
             className="btn-cyber btn-danger text-base px-6 py-2"
           >
-            ← MAIN MENU
+            <ArrowLeft size={16} className="inline mr-1" /> MAIN MENU
           </button>
         </div>
       </div>

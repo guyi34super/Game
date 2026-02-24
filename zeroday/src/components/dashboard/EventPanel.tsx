@@ -3,6 +3,7 @@
 import { useGameStore } from "@/lib/store";
 import { getAttackIcon, getSeverityColor } from "@/engine/attacks";
 import { SecurityEvent } from "@/engine/types";
+import { AlertTriangle, Shield, Check, X } from "lucide-react";
 
 function EventCard({ event }: { event: SecurityEvent }) {
   const { handleEvent, tick } = useGameStore();
@@ -18,7 +19,7 @@ function EventCard({ event }: { event: SecurityEvent }) {
     >
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex items-center gap-2">
-          <span className="text-xl">{getAttackIcon(event.type)}</span>
+          {(() => { const Icon = getAttackIcon(event.type); return <Icon size={20} />; })()}
           <div>
             <h4 className="text-sm font-semibold text-cyber-text">{event.title}</h4>
             <div className="flex items-center gap-2 mt-0.5">
@@ -49,7 +50,7 @@ function EventCard({ event }: { event: SecurityEvent }) {
 
       {event.resolved ? (
         <div className={`text-xs ${event.outcome === "success" ? "text-neon-green" : "text-neon-red"}`}>
-          {event.outcome === "success" ? "✓ Resolved" : event.outcome === "failed" ? "✗ Response Failed" : "✗ Expired"} 
+          {event.outcome === "success" ? <><Check size={12} className="inline" /> Resolved</> : event.outcome === "failed" ? <><X size={12} className="inline" /> Response Failed</> : <><X size={12} className="inline" /> Expired</>}{" "}
           {event.chosenAction && ` via "${event.chosenAction}"`}
         </div>
       ) : (
@@ -88,14 +89,14 @@ export default function EventPanel() {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-bold text-neon-red uppercase tracking-wider flex items-center gap-2">
-          <span className={activeEvents.length > 0 ? "animate-pulse" : ""}>⚠</span>
+          <AlertTriangle size={14} className={activeEvents.length > 0 ? "animate-pulse" : ""} />
           Active Threats ({activeEvents.length})
         </h2>
       </div>
 
       {activeEvents.length === 0 ? (
         <div className="card-cyber p-6 text-center">
-          <div className="text-2xl mb-2">🛡️</div>
+          <div className="text-2xl mb-2"><Shield size={28} /></div>
           <p className="text-cyber-dim text-sm">No active threats. Systems nominal.</p>
         </div>
       ) : (

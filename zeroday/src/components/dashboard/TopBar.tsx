@@ -1,6 +1,7 @@
 "use client";
 
 import { useGameStore } from "@/lib/store";
+import { Play, Pause } from "lucide-react";
 
 export default function TopBar() {
   const { day, hour, paused, gameSpeed, gameOver, company, stats, togglePause, setSpeed } = useGameStore();
@@ -47,7 +48,7 @@ export default function TopBar() {
             onClick={togglePause}
             className={`ml-1 px-2 py-0.5 text-xs rounded ${paused ? "bg-neon-yellow/20 text-neon-yellow border border-neon-yellow/40" : "bg-neon-red/20 text-neon-red border border-neon-red/40"}`}
           >
-            {paused ? "▶ PLAY" : "⏸ PAUSE"}
+            {paused ? <><Play size={10} className="inline" /> PLAY</> : <><Pause size={10} className="inline" /> PAUSE</>}
           </button>
         </div>
       </div>

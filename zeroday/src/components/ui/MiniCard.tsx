@@ -1,10 +1,12 @@
 "use client";
 
+import { ReactNode } from "react";
+
 type MiniCardProps = {
   title: string;
   value: string | number;
   subtitle?: string;
-  icon?: string;
+  icon?: ReactNode;
   color?: string;
   trend?: "up" | "down" | "neutral";
 };
@@ -14,7 +16,7 @@ export default function MiniCard({ title, value, subtitle, icon, color = "#00ff4
     <div className="card-cyber p-3 flex flex-col gap-1">
       <div className="flex items-center justify-between">
         <span className="text-xs text-cyber-dim uppercase tracking-wider">{title}</span>
-        {icon && <span className="text-lg">{icon}</span>}
+        {icon && <span className="text-lg flex items-center">{icon}</span>}
       </div>
       <div className="text-xl font-bold font-mono" style={{ color }}>
         {value}

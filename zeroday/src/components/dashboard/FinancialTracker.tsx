@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useGameStore } from "@/lib/store";
 import * as d3 from "d3";
+import { Coins } from "lucide-react";
 
 export default function FinancialTracker() {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -51,7 +52,7 @@ export default function FinancialTracker() {
 
   return (
     <div className="card-cyber p-4">
-      <h3 className="text-xs text-cyber-dim uppercase tracking-wider mb-2">💰 Financial Impact</h3>
+      <h3 className="text-xs text-cyber-dim uppercase tracking-wider mb-2 flex items-center gap-2"><Coins size={14} /> Financial Impact</h3>
       <div className="grid grid-cols-3 gap-2 mb-3 text-center">
         <div>
           <div className="text-[10px] text-cyber-dim">Budget</div>
