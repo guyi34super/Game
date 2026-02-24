@@ -1,21 +1,62 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { sanitizeObject, validateExternalUrl } from "@/lib/security/sanitize";
+import { sanitizeObject, validateExternalUrl, isPrivateAddress } from "@/lib/security/sanitize";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/security/rate-limit";
 
-const AI_SERVICE_URL = process.env.AI_SERVICE_URL || "http://localhost:5000";
 const VALID_TYPES = new Set(["traffic", "behavior", "risk"]);
 const MAX_BODY_SIZE = 50_000;
 const AI_FETCH_TIMEOUT_MS = 10_000;
+const ALLOWED_AI_ENDPOINTS: Record<string, string> = {
+  traffic: "/api/analyze/traffic",
+  behavior: "/api/analyze/behavior",
+  risk: "/api/analyze/risk",
+};
 
 function getClientIp(req: NextRequest): string {
-  return (
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    req.headers.get("x-real-ip") ||
-    "unknown"
-  );
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) {
+    const first = forwarded.split(",")[0]?.trim();
+    if (first && (/^[\d.]+$/.test(first) || /^[a-fA-F0-9:]+$/.test(first))) {
+      return first;
+    }
+  }
+  return req.headers.get("x-real-ip") || "unknown";
 }
+
+function validateAiServiceUrl(): { valid: boolean; url: string; reason?: string } {
+  const raw = process.env.AI_SERVICE_URL;
+  if (!raw) {
+    return { valid: false, url: "", reason: "AI_SERVICE_URL not configured" };
+  }
+
+  try {
+    const parsed = new URL(raw);
+
+    if (!["http:", "https:"].includes(parsed.protocol)) {
+      return { valid: false, url: raw, reason: "Invalid protocol" };
+    }
+
+    if (isPrivateAddress(parsed.hostname) && process.env.NODE_ENV === "production") {
+      return { valid: false, url: raw, reason: "Private address blocked in production" };
+    }
+
+    const validation = validateExternalUrl(raw);
+    if (!validation.valid) {
+      return { valid: false, url: raw, reason: validation.reason };
+    }
+
+    return { valid: true, url: raw };
+  } catch {
+    return { valid: false, url: raw ?? "", reason: "Malformed URL" };
+  }
+}
+
+const FALLBACK_RESPONSE = {
+  error: "AI service unavailable",
+  fallback: true,
+  message: "Running in offline mode - AI analysis uses local heuristics",
+};
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,7 +70,7 @@ export async function POST(req: NextRequest) {
     if (!rateResult.allowed) {
       const retryAfter = Math.ceil(rateResult.retryAfterMs / 1000);
       return NextResponse.json(
-        { error: "Rate limit exceeded. Try again later." },
+        { error: "Rate limit exceeded" },
         {
           status: 429,
           headers: { "Retry-After": String(retryAfter) },
@@ -38,55 +79,61 @@ export async function POST(req: NextRequest) {
     }
 
     const contentLength = req.headers.get("content-length");
-    if (contentLength && parseInt(contentLength, 10) > MAX_BODY_SIZE) {
-      return NextResponse.json({ error: "Request body too large" }, { status: 413 });
+    if (contentLength) {
+      const size = parseInt(contentLength, 10);
+      if (isNaN(size) || size > MAX_BODY_SIZE) {
+        return NextResponse.json({ error: "Request too large" }, { status: 413 });
+      }
+    }
+
+    let rawText: string;
+    try {
+      rawText = await req.text();
+    } catch {
+      return NextResponse.json({ error: "Failed to read request body" }, { status: 400 });
+    }
+
+    if (rawText.length > MAX_BODY_SIZE) {
+      return NextResponse.json({ error: "Request too large" }, { status: 413 });
     }
 
     let rawBody: unknown;
     try {
-      rawBody = await req.json();
+      rawBody = JSON.parse(rawText);
     } catch {
-      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
     }
 
     if (typeof rawBody !== "object" || rawBody === null || Array.isArray(rawBody)) {
-      return NextResponse.json({ error: "Body must be a JSON object" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid request format" }, { status: 400 });
     }
 
     const body = sanitizeObject(rawBody as Record<string, unknown>);
     const { type, data } = body as { type?: string; data?: unknown };
 
-    if (!type || !VALID_TYPES.has(type)) {
-      return NextResponse.json(
-        { error: "Invalid analysis type. Must be: traffic, behavior, or risk" },
-        { status: 400 }
-      );
+    if (!type || typeof type !== "string" || !VALID_TYPES.has(type)) {
+      return NextResponse.json({ error: "Invalid analysis type" }, { status: 400 });
     }
 
     if (data === undefined || data === null) {
-      return NextResponse.json({ error: "Missing 'data' field" }, { status: 400 });
+      return NextResponse.json({ error: "Missing data field" }, { status: 400 });
     }
 
-    const urlValidation = validateExternalUrl(AI_SERVICE_URL);
-    if (AI_SERVICE_URL !== "http://localhost:5000" && !urlValidation.valid) {
-      console.error(`[SECURITY] Blocked SSRF attempt to: ${AI_SERVICE_URL} - ${urlValidation.reason}`);
-      return NextResponse.json(
-        { error: "AI service configuration error" },
-        { status: 500 }
-      );
+    const serviceUrl = validateAiServiceUrl();
+    if (!serviceUrl.valid) {
+      return NextResponse.json(FALLBACK_RESPONSE, { status: 200 });
     }
 
-    const endpoints: Record<string, string> = {
-      traffic: "/api/analyze/traffic",
-      behavior: "/api/analyze/behavior",
-      risk: "/api/analyze/risk",
-    };
+    const endpoint = ALLOWED_AI_ENDPOINTS[type];
+    if (!endpoint) {
+      return NextResponse.json({ error: "Invalid analysis type" }, { status: 400 });
+    }
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), AI_FETCH_TIMEOUT_MS);
 
     try {
-      const response = await fetch(`${AI_SERVICE_URL}${endpoints[type]}`, {
+      const response = await fetch(`${serviceUrl.url}${endpoint}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -99,37 +146,17 @@ export async function POST(req: NextRequest) {
       clearTimeout(timeout);
 
       if (!response.ok) {
-        throw new Error(`AI service responded with ${response.status}`);
+        return NextResponse.json(FALLBACK_RESPONSE, { status: 200 });
       }
 
       const result = await response.json();
       const sanitizedResult = sanitizeObject(result);
       return NextResponse.json(sanitizedResult);
-    } catch (fetchError) {
+    } catch {
       clearTimeout(timeout);
-      const isAbort = fetchError instanceof DOMException && fetchError.name === "AbortError";
-
-      if (isAbort) {
-        console.warn("[SECURITY] AI service request timed out");
-      }
-
-      return NextResponse.json(
-        {
-          error: "AI service unavailable",
-          fallback: true,
-          message: "Running in offline mode - AI analysis uses local heuristics",
-        },
-        { status: 200 }
-      );
+      return NextResponse.json(FALLBACK_RESPONSE, { status: 200 });
     }
   } catch {
-    return NextResponse.json(
-      {
-        error: "AI service unavailable",
-        fallback: true,
-        message: "Running in offline mode - AI analysis uses local heuristics",
-      },
-      { status: 200 }
-    );
+    return NextResponse.json(FALLBACK_RESPONSE, { status: 200 });
   }
 }

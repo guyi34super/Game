@@ -20,6 +20,7 @@ import {
   Gauge,
 } from "lucide-react";
 import { Difficulty, DIFFICULTY_CONFIGS } from "@/engine/types";
+import { isValidImageUrl } from "@/lib/security/sanitize-client";
 
 const GLITCH_CHARS = "!@#$%^&*()_+-=[]{}|;':\",./<>?";
 
@@ -161,11 +162,12 @@ export default function HomePage() {
             <>
               <div className="flex items-center gap-2 text-xs">
                 <div className="w-6 h-6 rounded-full bg-neon-green/20 border border-neon-green/40 flex items-center justify-center">
-                  {session?.user?.image ? (
+                  {session?.user?.image && isValidImageUrl(session.user.image) ? (
                     <img
                       src={session.user.image}
                       alt=""
                       className="w-6 h-6 rounded-full"
+                      referrerPolicy="no-referrer"
                     />
                   ) : (
                     <User size={12} className="text-neon-green" />

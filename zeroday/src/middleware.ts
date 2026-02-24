@@ -8,7 +8,11 @@ const API_RATE_MAX = 100;
 const AUTH_RATE_WINDOW = 300_000;
 const AUTH_RATE_MAX = 30;
 
+const ALLOWED_CALLBACK_PATHS = ["/", "/game", "/how-to-play"];
+
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
+let lastCleanupTime = Date.now();
+const CLEANUP_INTERVAL = 60_000;
 
 function getRateLimitKey(ip: string, bucket: string): string {
   return `${bucket}:${ip}`;
@@ -16,6 +20,16 @@ function getRateLimitKey(ip: string, bucket: string): string {
 
 function checkLimit(key: string, windowMs: number, max: number): { allowed: boolean; remaining: number; resetAt: number } {
   const now = Date.now();
+
+  if (now - lastCleanupTime > CLEANUP_INTERVAL) {
+    lastCleanupTime = now;
+    for (const [k, entry] of rateLimitStore) {
+      if (now > entry.resetAt) {
+        rateLimitStore.delete(k);
+      }
+    }
+  }
+
   const entry = rateLimitStore.get(key);
 
   if (!entry || now > entry.resetAt) {
@@ -30,38 +44,43 @@ function checkLimit(key: string, windowMs: number, max: number): { allowed: bool
   return { allowed: true, remaining: max - entry.count, resetAt: entry.resetAt };
 }
 
-function periodicCleanup() {
-  const now = Date.now();
-  for (const [key, entry] of rateLimitStore) {
-    if (now > entry.resetAt) {
-      rateLimitStore.delete(key);
+function getClientIp(request: NextRequest): string {
+  const forwarded = request.headers.get("x-forwarded-for");
+  if (forwarded) {
+    const first = forwarded.split(",")[0]?.trim();
+    if (first && /^[\d.]+$/.test(first) || /^[a-fA-F0-9:]+$/.test(first ?? "")) {
+      return first;
     }
   }
-}
-
-let cleanupCounter = 0;
-
-function getClientIp(request: NextRequest): string {
-  return (
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip") ||
-    "unknown"
-  );
+  return request.headers.get("x-real-ip") || "unknown";
 }
 
 function addSecurityHeaders(response: NextResponse): NextResponse {
   response.headers.set("X-Request-Id", crypto.randomUUID());
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  response.headers.set("Pragma", "no-cache");
   return response;
+}
+
+function getAuthSecret(): string {
+  const secret = process.env.NEXTAUTH_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("NEXTAUTH_SECRET is required in production");
+    }
+    return "zeroday-dev-secret-change-in-production";
+  }
+  return secret;
+}
+
+function isAllowedCallbackPath(path: string): boolean {
+  return ALLOWED_CALLBACK_PATHS.some((allowed) => path === allowed || path.startsWith(allowed + "/"));
 }
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const ip = getClientIp(request);
-
-  cleanupCounter++;
-  if (cleanupCounter % 100 === 0) {
-    periodicCleanup();
-  }
 
   if (pathname.startsWith("/api/")) {
     const isAuthEndpoint = pathname.startsWith("/api/auth");
@@ -74,7 +93,7 @@ export async function middleware(request: NextRequest) {
     if (!limit.allowed) {
       const retryAfter = Math.ceil((limit.resetAt - Date.now()) / 1000);
       const response = NextResponse.json(
-        { error: "Too many requests. Please try again later." },
+        { error: "Too many requests" },
         { status: 429 }
       );
       response.headers.set("Retry-After", String(retryAfter));
@@ -93,12 +112,12 @@ export async function middleware(request: NextRequest) {
           const originHost = new URL(origin).host;
           if (originHost !== host) {
             return addSecurityHeaders(
-              NextResponse.json({ error: "Cross-origin request blocked" }, { status: 403 })
+              NextResponse.json({ error: "Forbidden" }, { status: 403 })
             );
           }
         } catch {
           return addSecurityHeaders(
-            NextResponse.json({ error: "Invalid origin header" }, { status: 400 })
+            NextResponse.json({ error: "Bad request" }, { status: 400 })
           );
         }
       }
@@ -117,12 +136,14 @@ export async function middleware(request: NextRequest) {
   if (isProtected || isAuthRoute) {
     const token = await getToken({
       req: request,
-      secret: process.env.NEXTAUTH_SECRET ?? "zeroday-dev-secret-change-in-production",
+      secret: getAuthSecret(),
     });
 
     if (isProtected && !token) {
       const signinUrl = new URL("/auth/signin", request.url);
-      signinUrl.searchParams.set("callbackUrl", pathname);
+      if (isAllowedCallbackPath(pathname)) {
+        signinUrl.searchParams.set("callbackUrl", pathname);
+      }
       return NextResponse.redirect(signinUrl);
     }
 

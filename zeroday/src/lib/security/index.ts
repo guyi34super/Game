@@ -2,3 +2,4 @@ export { checkRateLimit, RATE_LIMITS, type RateLimitConfig, type RateLimitResult
 export { escapeHtml, sanitizeInput, sanitizeObject, isValidUrl, isPrivateAddress, validateExternalUrl } from "./sanitize";
 export { validateCsrf } from "./csrf";
 export { validateEnvironment, logEnvironmentCheck, type EnvCheckResult } from "./env-check";
+export { escapeForDisplay, isValidImageUrl } from "./sanitize-client";

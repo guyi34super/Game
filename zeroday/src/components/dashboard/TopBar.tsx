@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { Play, Pause, User, Shield, Gauge, Zap } from "lucide-react";
 import { Difficulty } from "@/engine/types";
 import { ReactNode } from "react";
+import { isValidImageUrl } from "@/lib/security/sanitize-client";
 
 const DIFF_BADGES: Record<Difficulty, { label: string; icon: ReactNode; color: string }> = {
   easy: { label: "EASY", icon: <Shield size={10} />, color: "text-neon-green bg-neon-green/10 border-neon-green/30" },
@@ -37,8 +38,8 @@ export default function TopBar() {
       <div className="flex items-center gap-4 flex-wrap">
         {userName && (
           <div className="flex items-center gap-1.5 text-xs text-cyber-dim border-r border-cyber-border pr-3">
-            {session?.user?.image ? (
-              <img src={session.user.image} alt="" className="w-5 h-5 rounded-full" />
+            {session?.user?.image && isValidImageUrl(session.user.image) ? (
+              <img src={session.user.image} alt="" className="w-5 h-5 rounded-full" referrerPolicy="no-referrer" />
             ) : (
               <User size={12} />
             )}

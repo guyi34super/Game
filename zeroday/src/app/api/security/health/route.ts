@@ -9,19 +9,18 @@ export async function GET() {
     return NextResponse.json({ error: "Authentication required" }, { status: 401 });
   }
 
+  const sessionUser = session.user as Record<string, unknown>;
+  if (sessionUser.isGuest) {
+    return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+  }
+
   const envCheck = validateEnvironment();
-  const isProduction = process.env.NODE_ENV === "production";
 
   const checks = {
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV ?? "unknown",
+    status: envCheck.valid ? "healthy" : "degraded",
     security: {
-      authSecret: process.env.NEXTAUTH_SECRET
-        ? process.env.NEXTAUTH_SECRET !== "zeroday-dev-secret-change-in-production"
-          ? "strong"
-          : "weak-default"
-        : "missing",
-      httpsEnforced: isProduction,
+      authConfigured: !!process.env.NEXTAUTH_SECRET,
       csrfProtection: true,
       rateLimiting: true,
       inputSanitization: true,
@@ -35,10 +34,9 @@ export async function GET() {
       github: !!process.env.GITHUB_ID,
       guest: true,
     },
-    envValidation: {
-      valid: envCheck.valid,
-      warningCount: envCheck.warnings.length,
-      errorCount: envCheck.errors.length,
+    validation: {
+      passed: envCheck.valid,
+      issues: envCheck.warnings.length + envCheck.errors.length,
     },
   };
 

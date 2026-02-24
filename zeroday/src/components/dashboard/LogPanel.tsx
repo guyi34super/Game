@@ -4,6 +4,7 @@ import { useRef, useEffect } from "react";
 import { useGameStore } from "@/lib/store";
 import { GameLog } from "@/engine/types";
 import { ClipboardList } from "lucide-react";
+import { escapeForDisplay } from "@/lib/security/sanitize-client";
 
 const LOG_COLORS: Record<GameLog["type"], string> = {
   info: "#8b949e",
@@ -47,8 +48,8 @@ export default function LogPanel() {
               <span className="font-bold shrink-0 w-20" style={{ color: LOG_COLORS[log.type] }}>
                 {LOG_PREFIX[log.type]}
               </span>
-              <span className="text-cyber-dim shrink-0">[{log.source}]</span>
-              <span style={{ color: LOG_COLORS[log.type] }}>{log.message}</span>
+              <span className="text-cyber-dim shrink-0">[{escapeForDisplay(log.source)}]</span>
+              <span style={{ color: LOG_COLORS[log.type] }}>{escapeForDisplay(log.message)}</span>
             </div>
           ))
         )}

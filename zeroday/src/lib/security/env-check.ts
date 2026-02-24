@@ -116,8 +116,10 @@ export function validateEnvironment(): EnvCheckResult {
 
   if (isProduction) {
     const secret = process.env.NEXTAUTH_SECRET;
-    if (secret === "zeroday-dev-secret-change-in-production") {
-      errors.push("NEXTAUTH_SECRET is using the default dev value in production. Set a unique random secret.");
+    if (!secret) {
+      errors.push("NEXTAUTH_SECRET must be set in production. Generate with: openssl rand -base64 32");
+    } else if (secret.length < 32) {
+      errors.push("NEXTAUTH_SECRET must be at least 32 characters. Generate with: openssl rand -base64 32");
     }
   }
 
