@@ -1,0 +1,141 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cyber-black: #0a0a0f;
+  --color-cyber-dark: #0d1117;
+  --color-cyber-card: #161b22;
+  --color-cyber-border: #21262d;
+  --color-cyber-text: #c9d1d9;
+  --color-cyber-dim: #8b949e;
+  --color-neon-green: #00ff41;
+  --color-neon-blue: #00d4ff;
+  --color-neon-purple: #a855f7;
+  --color-neon-red: #ff3e3e;
+  --color-neon-yellow: #ffd700;
+  --color-neon-orange: #ff8c00;
+  --color-severity-low: #22c55e;
+  --color-severity-medium: #eab308;
+  --color-severity-high: #f97316;
+  --color-severity-critical: #ef4444;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #21262d #0d1117;
+}
+
+body {
+  background: #0a0a0f;
+  color: #c9d1d9;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes scan-line {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  92% { opacity: 1; }
+  93% { opacity: 0.8; }
+  94% { opacity: 1; }
+  96% { opacity: 0.9; }
+  97% { opacity: 1; }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-flicker {
+  animation: flicker 3s infinite;
+}
+
+.glow-green {
+  text-shadow: 0 0 10px #00ff41, 0 0 20px #00ff41, 0 0 40px #00ff41;
+}
+
+.glow-blue {
+  text-shadow: 0 0 10px #00d4ff, 0 0 20px #00d4ff;
+}
+
+.glow-red {
+  text-shadow: 0 0 10px #ff3e3e, 0 0 20px #ff3e3e;
+}
+
+.card-cyber {
+  background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
+  border: 1px solid #21262d;
+  border-radius: 8px;
+}
+
+.card-cyber:hover {
+  border-color: #00ff4133;
+  box-shadow: 0 0 15px rgba(0, 255, 65, 0.05);
+}
+
+.btn-cyber {
+  background: linear-gradient(135deg, #00ff4120 0%, #00d4ff10 100%);
+  border: 1px solid #00ff4140;
+  color: #00ff41;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cyber:hover {
+  background: linear-gradient(135deg, #00ff4130 0%, #00d4ff20 100%);
+  border-color: #00ff4180;
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.15);
+}
+
+.btn-cyber:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #ff3e3e20 0%, #ff8c0010 100%);
+  border-color: #ff3e3e40;
+  color: #ff3e3e;
+}
+
+.btn-danger:hover {
+  background: linear-gradient(135deg, #ff3e3e30 0%, #ff8c0020 100%);
+  border-color: #ff3e3e80;
+  box-shadow: 0 0 20px rgba(255, 62, 62, 0.15);
+}
+
+.progress-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: #21262d;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.terminal-text {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.grid-pattern {
+  background-image:
+    linear-gradient(rgba(0, 255, 65, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 65, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
