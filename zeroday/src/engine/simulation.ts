@@ -86,6 +86,7 @@ export function gameTick(state: GameState): GameState {
     const newProgress = r.progress + 1;
     if (newProgress >= r.duration) {
       newLogs.push(createLog("success", `Research complete: ${r.name}`, "R&D Lab", next.tick));
+      next.company = { ...next.company };
       const effect = r.effect;
       for (const [key, val] of Object.entries(effect)) {
         const k = key as keyof typeof next.company;

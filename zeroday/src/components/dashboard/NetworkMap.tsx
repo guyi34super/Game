@@ -33,6 +33,7 @@ const STATUS_COLORS: Record<NetworkNode["status"], string> = {
 export default function NetworkMap() {
   const svgRef = useRef<SVGSVGElement>(null);
   const { network, patchNode } = useGameStore();
+  const nodePositionsRef = useRef<Map<string, { x: number; y: number }>>(new Map());
 
   useEffect(() => {
     if (!svgRef.current) return;
@@ -49,12 +50,20 @@ export default function NetworkMap() {
     feMerge.append("feMergeNode").attr("in", "SourceGraphic");
 
     const nodes = network.map((node, i) => {
-      const angle = (i / network.length) * Math.PI * 2;
-      const radius = Math.min(width, height) * 0.35;
+      let pos = nodePositionsRef.current.get(node.id);
+      if (!pos) {
+        const angle = (i / network.length) * Math.PI * 2;
+        const radius = Math.min(width, height) * 0.35;
+        pos = {
+          x: width / 2 + Math.cos(angle) * radius * (0.7 + Math.random() * 0.3),
+          y: height / 2 + Math.sin(angle) * radius * (0.7 + Math.random() * 0.3),
+        };
+        nodePositionsRef.current.set(node.id, pos);
+      }
       return {
         ...node,
-        x: width / 2 + Math.cos(angle) * radius * (0.7 + Math.random() * 0.3),
-        y: height / 2 + Math.sin(angle) * radius * (0.7 + Math.random() * 0.3),
+        x: pos.x,
+        y: pos.y,
       };
     });
 
