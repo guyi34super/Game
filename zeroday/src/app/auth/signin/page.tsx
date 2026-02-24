@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Shield, Chrome, Apple, Github, User, Terminal, Lock, Wifi } from "lucide-react";
 
 const MATRIX_CHARS = "01";
@@ -81,8 +81,32 @@ const AUTH_PROVIDERS = [
   },
 ];
 
+const ALLOWED_CALLBACKS = ["/", "/game", "/how-to-play"];
+
+function getSafeCallbackUrl(raw: string | null): string {
+  if (!raw) return "/";
+  if (ALLOWED_CALLBACKS.some((p) => raw === p || raw.startsWith(p + "?"))) {
+    return raw;
+  }
+  return "/";
+}
+
 export default function SignInPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-cyber-black flex items-center justify-center">
+        <div className="text-neon-green animate-pulse text-xs font-mono">Initializing...</div>
+      </div>
+    }>
+      <SignInContent />
+    </Suspense>
+  );
+}
+
+function SignInContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = getSafeCallbackUrl(searchParams.get("callbackUrl"));
   const [loading, setLoading] = useState<string | null>(null);
   const [bootComplete, setBootComplete] = useState(false);
   const [bootLines, setBootLines] = useState<string[]>([]);
@@ -112,7 +136,7 @@ export default function SignInPage() {
   const handleProviderSignIn = async (providerId: string) => {
     setLoading(providerId);
     try {
-      await signIn(providerId, { callbackUrl: "/" });
+      await signIn(providerId, { callbackUrl });
     } catch {
       setLoading(null);
     }
@@ -123,7 +147,7 @@ export default function SignInPage() {
     try {
       const result = await signIn("guest", { redirect: false });
       if (result?.ok) {
-        router.push("/");
+        router.push(callbackUrl);
       }
     } catch {
       setLoading(null);

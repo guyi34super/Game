@@ -138,6 +138,10 @@ export default function HomePage() {
 
   const handleStartGame = () => {
     initGame(selectedDifficulty);
+    if (status !== "authenticated") {
+      router.push("/auth/signin?callbackUrl=/game");
+      return;
+    }
     router.push("/game");
   };
 
