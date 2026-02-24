@@ -1,21 +1,30 @@
 "use client";
 
-import { useEffect, useState, useCallback, ReactNode } from "react";
+import { useEffect, useState, useCallback, useMemo, lazy, Suspense, ReactNode } from "react";
 import { useGameStore } from "@/lib/store";
 import { LayoutDashboard, Globe, Users, FlaskConical, ClipboardList } from "lucide-react";
 import TopBar from "@/components/dashboard/TopBar";
-import StatsOverview from "@/components/dashboard/StatsOverview";
-import EventPanel from "@/components/dashboard/EventPanel";
-import NetworkMap from "@/components/dashboard/NetworkMap";
-import ThreatTimeline from "@/components/dashboard/ThreatTimeline";
-import TrafficMonitor from "@/components/dashboard/TrafficMonitor";
-import EmployeePanel from "@/components/dashboard/EmployeePanel";
-import ResearchPanel from "@/components/dashboard/ResearchPanel";
-import LogPanel from "@/components/dashboard/LogPanel";
-import VulnerabilityHeatmap from "@/components/dashboard/VulnerabilityHeatmap";
 import GameOverScreen from "@/components/game/GameOverScreen";
-import AIPanel from "@/components/dashboard/AIPanel";
-import FinancialTracker from "@/components/dashboard/FinancialTracker";
+
+const StatsOverview = lazy(() => import("@/components/dashboard/StatsOverview"));
+const EventPanel = lazy(() => import("@/components/dashboard/EventPanel"));
+const NetworkMap = lazy(() => import("@/components/dashboard/NetworkMap"));
+const ThreatTimeline = lazy(() => import("@/components/dashboard/ThreatTimeline"));
+const TrafficMonitor = lazy(() => import("@/components/dashboard/TrafficMonitor"));
+const EmployeePanel = lazy(() => import("@/components/dashboard/EmployeePanel"));
+const ResearchPanel = lazy(() => import("@/components/dashboard/ResearchPanel"));
+const LogPanel = lazy(() => import("@/components/dashboard/LogPanel"));
+const VulnerabilityHeatmap = lazy(() => import("@/components/dashboard/VulnerabilityHeatmap"));
+const AIPanel = lazy(() => import("@/components/dashboard/AIPanel"));
+const FinancialTracker = lazy(() => import("@/components/dashboard/FinancialTracker"));
+
+function PanelLoader() {
+  return (
+    <div className="card-cyber p-8 flex items-center justify-center">
+      <div className="text-neon-green/40 text-xs animate-pulse font-mono">Loading...</div>
+    </div>
+  );
+}
 
 type Tab = "overview" | "network" | "employees" | "research" | "logs";
 
@@ -30,9 +39,14 @@ const TABS: { id: Tab; label: string; icon: ReactNode }[] = [
 export default function GamePage() {
   const [tab, setTab] = useState<Tab>("overview");
   const [initialized, setInitialized] = useState(false);
-  const { doTick, gameSpeed, paused, gameOver, init, events } = useGameStore();
 
-  const activeThreats = events.filter((e) => !e.resolved).length;
+  const doTick = useGameStore((s) => s.doTick);
+  const gameSpeed = useGameStore((s) => s.gameSpeed);
+  const gameOver = useGameStore((s) => s.gameOver);
+  const init = useGameStore((s) => s.init);
+  const events = useGameStore((s) => s.events);
+
+  const activeThreats = useMemo(() => events.filter((e) => !e.resolved).length, [events]);
 
   useEffect(() => {
     if (!initialized) {
@@ -89,65 +103,55 @@ export default function GamePage() {
       </div>
 
       <div className="flex-1 p-4 overflow-y-auto">
-        {tab === "overview" && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            <div className="lg:col-span-4 space-y-4">
-              <StatsOverview />
+        <Suspense fallback={<PanelLoader />}>
+          {tab === "overview" && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+              <div className="lg:col-span-4 space-y-4"><StatsOverview /></div>
+              <div className="lg:col-span-5 space-y-4"><EventPanel /></div>
+              <div className="lg:col-span-3 space-y-4">
+                <AIPanel />
+                <FinancialTracker />
+                <TrafficMonitor />
+                <ThreatTimeline />
+                <VulnerabilityHeatmap />
+              </div>
             </div>
-            <div className="lg:col-span-5 space-y-4">
-              <EventPanel />
+          )}
+          {tab === "network" && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <NetworkMap />
+              <div className="space-y-4">
+                <TrafficMonitor />
+                <VulnerabilityHeatmap />
+                <ThreatTimeline />
+              </div>
             </div>
-            <div className="lg:col-span-3 space-y-4">
-              <AIPanel />
-              <FinancialTracker />
-              <TrafficMonitor />
-              <ThreatTimeline />
-              <VulnerabilityHeatmap />
+          )}
+          {tab === "employees" && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <EmployeePanel />
+              <div className="space-y-4"><StatsOverview /></div>
             </div>
-          </div>
-        )}
-
-        {tab === "network" && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <NetworkMap />
-            <div className="space-y-4">
-              <TrafficMonitor />
-              <VulnerabilityHeatmap />
-              <ThreatTimeline />
+          )}
+          {tab === "research" && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <ResearchPanel />
+              <div className="space-y-4">
+                <StatsOverview />
+                <LogPanel />
+              </div>
             </div>
-          </div>
-        )}
-
-        {tab === "employees" && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <EmployeePanel />
-            <div className="space-y-4">
-              <StatsOverview />
+          )}
+          {tab === "logs" && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="lg:col-span-2"><LogPanel /></div>
+              <div className="space-y-4">
+                <TrafficMonitor />
+                <ThreatTimeline />
+              </div>
             </div>
-          </div>
-        )}
-
-        {tab === "research" && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <ResearchPanel />
-            <div className="space-y-4">
-              <StatsOverview />
-              <LogPanel />
-            </div>
-          </div>
-        )}
-
-        {tab === "logs" && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2">
-              <LogPanel />
-            </div>
-            <div className="space-y-4">
-              <TrafficMonitor />
-              <ThreatTimeline />
-            </div>
-          </div>
-        )}
+          )}
+        </Suspense>
       </div>
     </div>
   );

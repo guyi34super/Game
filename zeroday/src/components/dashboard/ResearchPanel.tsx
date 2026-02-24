@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useMemo, useCallback } from "react";
 import { useGameStore } from "@/lib/store";
 import { Research } from "@/engine/types";
 import type { LucideIcon } from "lucide-react";
@@ -19,37 +20,55 @@ const CATEGORY_ICONS: Record<Research["category"], LucideIcon> = {
   ai: Bot,
 };
 
-export default function ResearchPanel() {
-  const { research, startResearch, company } = useGameStore();
+const CATEGORIES = ["prevention", "detection", "response", "ai"] as const;
 
-  const canResearch = (r: Research) => {
-    if (r.unlocked || r.researching) return false;
-    if (company.securityBudget < r.cost) return false;
-    return r.prerequisites.every((p) => research.find((x) => x.id === p)?.unlocked);
-  };
+export default memo(function ResearchPanel() {
+  const research = useGameStore((s) => s.research);
+  const company = useGameStore((s) => s.company);
+  const startResearch = useGameStore((s) => s.startResearch);
 
-  const categories = ["prevention", "detection", "response", "ai"] as const;
+  const unlockedIds = useMemo(
+    () => new Set(research.filter((r) => r.unlocked).map((r) => r.id)),
+    [research]
+  );
+
+  const canResearch = useCallback(
+    (r: Research) => {
+      if (r.unlocked || r.researching) return false;
+      if (company.securityBudget < r.cost) return false;
+      return r.prerequisites.every((p) => unlockedIds.has(p));
+    },
+    [company.securityBudget, unlockedIds]
+  );
+
+  const researchByCategory = useMemo(
+    () => {
+      const map = new Map<string, Research[]>();
+      for (const cat of CATEGORIES) map.set(cat, []);
+      for (const r of research) {
+        map.get(r.category)?.push(r);
+      }
+      return map;
+    },
+    [research]
+  );
 
   return (
     <div className="card-cyber p-4">
       <h3 className="text-xs text-cyber-dim uppercase tracking-wider mb-4 flex items-center gap-2"><FlaskConical size={14} /> Research Lab</h3>
 
       <div className="space-y-5">
-        {categories.map((cat) => {
-          const items = research.filter((r) => r.category === cat);
+        {CATEGORIES.map((cat) => {
+          const items = researchByCategory.get(cat) ?? [];
+          const CatIcon = CATEGORY_ICONS[cat];
           return (
             <div key={cat}>
-              <h4
-                className="text-xs font-bold uppercase tracking-wider mb-2 flex items-center gap-1"
-                style={{ color: CATEGORY_COLORS[cat] }}
-              >
-                {(() => { const Icon = CATEGORY_ICONS[cat]; return <Icon size={12} />; })()} {cat}
+              <h4 className="text-xs font-bold uppercase tracking-wider mb-2 flex items-center gap-1" style={{ color: CATEGORY_COLORS[cat] }}>
+                <CatIcon size={12} /> {cat}
               </h4>
               <div className="space-y-2">
                 {items.map((r) => {
-                  const prereqsMet = r.prerequisites.every(
-                    (p) => research.find((x) => x.id === p)?.unlocked
-                  );
+                  const prereqsMet = r.prerequisites.every((p) => unlockedIds.has(p));
                   return (
                     <div
                       key={r.id}
@@ -95,9 +114,7 @@ export default function ResearchPanel() {
                               style={{ width: `${(r.progress / r.duration) * 100}%` }}
                             />
                           </div>
-                          <div className="text-[10px] text-cyber-dim mt-1 text-right">
-                            {r.progress}/{r.duration}
-                          </div>
+                          <div className="text-[10px] text-cyber-dim mt-1 text-right">{r.progress}/{r.duration}</div>
                         </div>
                       )}
 
@@ -130,4 +147,4 @@ export default function ResearchPanel() {
       </div>
     </div>
   );
-}
+});

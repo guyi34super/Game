@@ -1,14 +1,22 @@
 "use client";
 
+import { memo, useMemo, useCallback } from "react";
 import { useGameStore } from "@/lib/store";
 import { getAttackIcon, getSeverityColor } from "@/engine/attacks";
 import { SecurityEvent } from "@/engine/types";
 import { AlertTriangle, Shield, Check, X } from "lucide-react";
+import { escapeForDisplay } from "@/lib/security/sanitize-client";
 
-function EventCard({ event }: { event: SecurityEvent }) {
-  const { handleEvent, tick } = useGameStore();
+const EventCard = memo(function EventCard({ event }: { event: SecurityEvent }) {
+  const handleEvent = useGameStore((s) => s.handleEvent);
+  const tick = useGameStore((s) => s.tick);
   const timeLeft = Math.max(0, event.expiresAt - tick);
   const urgency = timeLeft / 20;
+
+  const onChoice = useCallback(
+    (choiceId: string) => handleEvent(event.id, choiceId),
+    [handleEvent, event.id]
+  );
 
   return (
     <div
@@ -21,7 +29,7 @@ function EventCard({ event }: { event: SecurityEvent }) {
         <div className="flex items-center gap-2">
           {(() => { const Icon = getAttackIcon(event.type); return <Icon size={20} />; })()}
           <div>
-            <h4 className="text-sm font-semibold text-cyber-text">{event.title}</h4>
+            <h4 className="text-sm font-semibold text-cyber-text">{escapeForDisplay(event.title)}</h4>
             <div className="flex items-center gap-2 mt-0.5">
               <span
                 className="text-[10px] px-1.5 py-0.5 rounded-full font-bold uppercase"
@@ -33,7 +41,7 @@ function EventCard({ event }: { event: SecurityEvent }) {
               >
                 {event.severity}
               </span>
-              <span className="text-[10px] text-cyber-dim">{event.source}</span>
+              <span className="text-[10px] text-cyber-dim">{escapeForDisplay(event.source)}</span>
             </div>
           </div>
         </div>
@@ -46,25 +54,25 @@ function EventCard({ event }: { event: SecurityEvent }) {
         )}
       </div>
 
-      <p className="text-xs text-cyber-dim mb-3">{event.description}</p>
+      <p className="text-xs text-cyber-dim mb-3">{escapeForDisplay(event.description)}</p>
 
       {event.resolved ? (
         <div className={`text-xs ${event.outcome === "success" ? "text-neon-green" : "text-neon-red"}`}>
           {event.outcome === "success" ? <><Check size={12} className="inline" /> Resolved</> : event.outcome === "failed" ? <><X size={12} className="inline" /> Response Failed</> : <><X size={12} className="inline" /> Expired</>}{" "}
-          {event.chosenAction && ` via "${event.chosenAction}"`}
+          {event.chosenAction && ` via "${escapeForDisplay(event.chosenAction)}"`}
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-2">
           {event.choices.map((choice) => (
             <button
               key={choice.id}
-              onClick={() => handleEvent(event.id, choice.id)}
+              onClick={() => onChoice(choice.id)}
               className="text-left p-2 rounded border border-cyber-border bg-cyber-dark/50 hover:border-neon-green/30 hover:bg-neon-green/5 transition-all group"
             >
               <div className="text-xs font-semibold text-cyber-text group-hover:text-neon-green">
-                {choice.label}
+                {escapeForDisplay(choice.label)}
               </div>
-              <div className="text-[10px] text-cyber-dim mt-0.5">{choice.description}</div>
+              <div className="text-[10px] text-cyber-dim mt-0.5">{escapeForDisplay(choice.description)}</div>
               <div className="flex gap-2 mt-1 text-[10px]">
                 {choice.moneyCost > 0 && <span className="text-neon-yellow">-${choice.moneyCost.toLocaleString()}</span>}
                 {choice.timeCost > 0 && <span className="text-neon-blue">{choice.timeCost}t</span>}
@@ -78,12 +86,13 @@ function EventCard({ event }: { event: SecurityEvent }) {
       )}
     </div>
   );
-}
+});
 
-export default function EventPanel() {
-  const { events } = useGameStore();
-  const activeEvents = events.filter((e) => !e.resolved);
-  const recentResolved = events.filter((e) => e.resolved).slice(-5).reverse();
+export default memo(function EventPanel() {
+  const events = useGameStore((s) => s.events);
+
+  const activeEvents = useMemo(() => events.filter((e) => !e.resolved), [events]);
+  const recentResolved = useMemo(() => events.filter((e) => e.resolved).slice(-5).reverse(), [events]);
 
   return (
     <div className="space-y-3">
@@ -119,4 +128,4 @@ export default function EventPanel() {
       )}
     </div>
   );
-}
+});

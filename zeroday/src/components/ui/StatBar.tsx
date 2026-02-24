@@ -1,5 +1,7 @@
 "use client";
 
+import { memo } from "react";
+
 type StatBarProps = {
   label: string;
   value: number;
@@ -9,7 +11,7 @@ type StatBarProps = {
   size?: "sm" | "md";
 };
 
-export default function StatBar({ label, value, max, color = "#00ff41", showValue = true, size = "md" }: StatBarProps) {
+export default memo(function StatBar({ label, value, max, color = "#00ff41", showValue = true, size = "md" }: StatBarProps) {
   const pct = Math.min(100, Math.max(0, (value / max) * 100));
   const height = size === "sm" ? "h-1.5" : "h-2";
 
@@ -31,4 +33,4 @@ export default function StatBar({ label, value, max, color = "#00ff41", showValu
       </div>
     </div>
   );
-}
+});

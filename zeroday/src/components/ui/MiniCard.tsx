@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode } from "react";
+import { memo, ReactNode } from "react";
 
 type MiniCardProps = {
   title: string;
@@ -11,7 +11,7 @@ type MiniCardProps = {
   trend?: "up" | "down" | "neutral";
 };
 
-export default function MiniCard({ title, value, subtitle, icon, color = "#00ff41", trend }: MiniCardProps) {
+export default memo(function MiniCard({ title, value, subtitle, icon, color = "#00ff41", trend }: MiniCardProps) {
   return (
     <div className="card-cyber p-3 flex flex-col gap-1">
       <div className="flex items-center justify-between">
@@ -29,4 +29,4 @@ export default function MiniCard({ title, value, subtitle, icon, color = "#00ff4
       {subtitle && <span className="text-[10px] text-cyber-dim">{subtitle}</span>}
     </div>
   );
-}
+});

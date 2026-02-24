@@ -1,14 +1,34 @@
 "use client";
 
+import { memo, useMemo, useCallback } from "react";
 import { useGameStore } from "@/lib/store";
 import { Users } from "lucide-react";
 
-export default function EmployeePanel() {
-  const { employees, trainEmployee, hireEmployee, company } = useGameStore();
+export default memo(function EmployeePanel() {
+  const employees = useGameStore((s) => s.employees);
+  const company = useGameStore((s) => s.company);
+  const trainEmployee = useGameStore((s) => s.trainEmployee);
+  const hireEmployee = useGameStore((s) => s.hireEmployee);
 
-  const sorted = [...employees].sort((a, b) => b.riskScore - a.riskScore);
-  const avgRisk = employees.reduce((s, e) => s + e.riskScore, 0) / employees.length;
-  const trainedCount = employees.filter((e) => e.trained).length;
+  const sorted = useMemo(
+    () => [...employees].sort((a, b) => b.riskScore - a.riskScore),
+    [employees]
+  );
+
+  const avgRisk = useMemo(
+    () => employees.reduce((s, e) => s + e.riskScore, 0) / employees.length,
+    [employees]
+  );
+
+  const trainedCount = useMemo(
+    () => employees.filter((e) => e.trained).length,
+    [employees]
+  );
+
+  const canHire = company.securityBudget >= 3000;
+  const canTrain = company.securityBudget >= 1000;
+
+  const handleHire = useCallback(() => hireEmployee(), [hireEmployee]);
 
   return (
     <div className="card-cyber p-4">
@@ -21,11 +41,7 @@ export default function EmployeePanel() {
       </div>
 
       <div className="mb-3">
-        <button
-          onClick={hireEmployee}
-          disabled={company.securityBudget < 3000}
-          className="btn-cyber text-xs px-3 py-1"
-        >
+        <button onClick={handleHire} disabled={!canHire} className="btn-cyber text-xs px-3 py-1">
           + Hire Employee ($3,000)
         </button>
       </div>
@@ -56,7 +72,7 @@ export default function EmployeePanel() {
               {!emp.trained && (
                 <button
                   onClick={() => trainEmployee(emp.id)}
-                  disabled={company.securityBudget < 1000}
+                  disabled={!canTrain}
                   className="text-[10px] px-2 py-1 btn-cyber"
                 >
                   Train
@@ -68,4 +84,4 @@ export default function EmployeePanel() {
       </div>
     </div>
   );
-}
+});
