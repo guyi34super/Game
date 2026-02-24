@@ -1,31 +1,27 @@
 "use client";
 
+import { memo, useMemo } from "react";
 import { useGameStore } from "@/lib/store";
 import MiniCard from "@/components/ui/MiniCard";
 import StatBar from "@/components/ui/StatBar";
 import { AlertTriangle, ShieldCheck, Skull, DollarSign } from "lucide-react";
 
-export default function StatsOverview() {
-  const { company, stats, events } = useGameStore();
-  const activeThreats = events.filter((e) => !e.resolved).length;
+export default memo(function StatsOverview() {
+  const company = useGameStore((s) => s.company);
+  const stats = useGameStore((s) => s.stats);
+  const events = useGameStore((s) => s.events);
+
+  const activeThreats = useMemo(() => events.filter((e) => !e.resolved).length, [events]);
+
+  const threatColor = activeThreats > 3 ? "#ff3e3e" : activeThreats > 0 ? "#ffd700" : "#00ff41";
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <MiniCard
-          title="Active Threats"
-          value={activeThreats}
-          icon={<AlertTriangle size={18} />}
-          color={activeThreats > 3 ? "#ff3e3e" : activeThreats > 0 ? "#ffd700" : "#00ff41"}
-        />
+        <MiniCard title="Active Threats" value={activeThreats} icon={<AlertTriangle size={18} />} color={threatColor} />
         <MiniCard title="Attacks Blocked" value={stats.attacksBlocked} icon={<ShieldCheck size={18} />} color="#00ff41" />
         <MiniCard title="Attacks Succeeded" value={stats.attacksSucceeded} icon={<Skull size={18} />} color="#ff3e3e" />
-        <MiniCard
-          title="Money Lost"
-          value={`$${stats.moneyLost.toLocaleString()}`}
-          icon={<DollarSign size={18} />}
-          color="#f97316"
-        />
+        <MiniCard title="Money Lost" value={`$${stats.moneyLost.toLocaleString()}`} icon={<DollarSign size={18} />} color="#f97316" />
       </div>
 
       <div className="card-cyber p-4 space-y-3">
@@ -40,4 +36,4 @@ export default function StatsOverview() {
       </div>
     </div>
   );
-}
+});

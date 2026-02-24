@@ -1,11 +1,16 @@
 "use client";
 
+import { memo, useCallback } from "react";
 import { useGameStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import { Skull, RotateCcw, ArrowLeft } from "lucide-react";
 
-export default function GameOverScreen() {
-  const { gameOverReason, stats, day, difficulty, init } = useGameStore();
+export default memo(function GameOverScreen() {
+  const gameOverReason = useGameStore((s) => s.gameOverReason);
+  const stats = useGameStore((s) => s.stats);
+  const day = useGameStore((s) => s.day);
+  const difficulty = useGameStore((s) => s.difficulty);
+  const init = useGameStore((s) => s.init);
   const router = useRouter();
 
   const diffLabel = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
@@ -50,9 +55,7 @@ export default function GameOverScreen() {
 
         <div className="flex gap-3 justify-center">
           <button
-            onClick={() => {
-              init(difficulty);
-            }}
+            onClick={() => init(difficulty)}
             className="btn-cyber text-base px-6 py-2"
           >
             <RotateCcw size={16} className="inline mr-1" /> RETRY
@@ -67,4 +70,4 @@ export default function GameOverScreen() {
       </div>
     </div>
   );
-}
+});

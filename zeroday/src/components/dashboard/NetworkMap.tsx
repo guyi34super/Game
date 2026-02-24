@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, memo, useCallback } from "react";
 import { useGameStore } from "@/lib/store";
-import * as d3 from "d3";
+import { select } from "d3-selection";
+import "d3-transition";
 import { NetworkNode } from "@/engine/types";
 import { Globe } from "lucide-react";
 
@@ -34,13 +35,16 @@ const STATUS_COLORS: Record<NetworkNode["status"], string> = {
   patching: "#ffd700",
 };
 
-export default function NetworkMap() {
+export default memo(function NetworkMap() {
   const svgRef = useRef<SVGSVGElement>(null);
-  const { network, patchNode } = useGameStore();
+  const network = useGameStore((s) => s.network);
+  const patchNode = useGameStore((s) => s.patchNode);
+
+  const handlePatch = useCallback((id: string) => patchNode(id), [patchNode]);
 
   useEffect(() => {
     if (!svgRef.current) return;
-    const svg = d3.select(svgRef.current);
+    const svg = select(svgRef.current);
     const width = svgRef.current.clientWidth;
     const height = svgRef.current.clientHeight;
     svg.selectAll("*").remove();
@@ -101,7 +105,7 @@ export default function NetworkMap() {
       .attr("opacity", 0.8);
 
     packets.each(function (d) {
-      const el = d3.select(this);
+      const el = select(this);
       function animate() {
         el.attr("cx", nodes[d.source].x)
           .attr("cy", nodes[d.source].y)
@@ -131,7 +135,7 @@ export default function NetworkMap() {
       .style("cursor", "pointer")
       .on("click", (_, d) => {
         if (d.vulnerabilities > 0 && d.status !== "patching") {
-          patchNode(d.id);
+          handlePatch(d.id);
         }
       });
 
@@ -151,7 +155,7 @@ export default function NetworkMap() {
       .attr("stroke-dasharray", "3,3");
 
     g.each(function (d) {
-      const fo = d3.select(this).append("foreignObject")
+      const fo = select(this).append("foreignObject")
         .attr("width", 20)
         .attr("height", 20)
         .attr("x", -10)
@@ -182,7 +186,7 @@ export default function NetworkMap() {
       .attr("fill", (d) => (d.vulnerabilities > 2 ? "#ff3e3e" : d.vulnerabilities > 0 ? "#ffd700" : "#00ff41"))
       .text((d) => (d.status === "patching" ? "PATCHING..." : `${d.vulnerabilities} vulns`));
 
-  }, [network, patchNode]);
+  }, [network, handlePatch]);
 
   return (
     <div className="card-cyber p-4">
@@ -193,4 +197,4 @@ export default function NetworkMap() {
       <svg ref={svgRef} className="w-full" style={{ height: "350px" }} />
     </div>
   );
-}
+});

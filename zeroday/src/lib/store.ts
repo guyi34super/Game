@@ -2,6 +2,8 @@ import { create } from "zustand";
 import { GameState, Difficulty } from "@/engine/types";
 import { createInitialState } from "@/engine/init";
 import { gameTick, resolveEvent } from "@/engine/simulation";
+import { generateEmployeeName, generateDepartmentAndRole } from "@/engine/names";
+import { v4 as uuid } from "uuid";
 
 type GameStore = GameState & {
   init: (difficulty?: Difficulty) => void;
@@ -26,6 +28,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   doTick: () => {
     const state = get();
+    if (state.paused || state.gameOver) return;
     const next = gameTick(state);
     set(next);
   },
@@ -36,8 +39,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   handleEvent: (eventId: string, choiceId: string) => {
     const state = get();
-    const next = resolveEvent(state, eventId, choiceId);
-    set(next);
+    const updates = resolveEvent(state, eventId, choiceId);
+    if (Object.keys(updates).length > 0) {
+      set(updates);
+    }
   },
 
   startResearch: (researchId: string) => {
@@ -119,8 +124,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const state = get();
     const cost = 3000;
     if (state.company.securityBudget < cost) return;
-    const { generateEmployeeName, generateDepartmentAndRole } = require("@/engine/names");
-    const { v4: uuid } = require("uuid");
     const { first, last } = generateEmployeeName();
     const { department, role } = generateDepartmentAndRole();
     set({

@@ -1,15 +1,22 @@
 "use client";
 
+import { memo, useMemo, useCallback } from "react";
 import { useGameStore } from "@/lib/store";
 import { getAttackIcon, getSeverityColor } from "@/engine/attacks";
 import { SecurityEvent } from "@/engine/types";
 import { AlertTriangle, Shield, Check, X } from "lucide-react";
 import { escapeForDisplay } from "@/lib/security/sanitize-client";
 
-function EventCard({ event }: { event: SecurityEvent }) {
-  const { handleEvent, tick } = useGameStore();
+const EventCard = memo(function EventCard({ event }: { event: SecurityEvent }) {
+  const handleEvent = useGameStore((s) => s.handleEvent);
+  const tick = useGameStore((s) => s.tick);
   const timeLeft = Math.max(0, event.expiresAt - tick);
   const urgency = timeLeft / 20;
+
+  const onChoice = useCallback(
+    (choiceId: string) => handleEvent(event.id, choiceId),
+    [handleEvent, event.id]
+  );
 
   return (
     <div
@@ -59,7 +66,7 @@ function EventCard({ event }: { event: SecurityEvent }) {
           {event.choices.map((choice) => (
             <button
               key={choice.id}
-              onClick={() => handleEvent(event.id, choice.id)}
+              onClick={() => onChoice(choice.id)}
               className="text-left p-2 rounded border border-cyber-border bg-cyber-dark/50 hover:border-neon-green/30 hover:bg-neon-green/5 transition-all group"
             >
               <div className="text-xs font-semibold text-cyber-text group-hover:text-neon-green">
@@ -79,12 +86,13 @@ function EventCard({ event }: { event: SecurityEvent }) {
       )}
     </div>
   );
-}
+});
 
-export default function EventPanel() {
-  const { events } = useGameStore();
-  const activeEvents = events.filter((e) => !e.resolved);
-  const recentResolved = events.filter((e) => e.resolved).slice(-5).reverse();
+export default memo(function EventPanel() {
+  const events = useGameStore((s) => s.events);
+
+  const activeEvents = useMemo(() => events.filter((e) => !e.resolved), [events]);
+  const recentResolved = useMemo(() => events.filter((e) => e.resolved).slice(-5).reverse(), [events]);
 
   return (
     <div className="space-y-3">
@@ -120,4 +128,4 @@ export default function EventPanel() {
       )}
     </div>
   );
-}
+});
