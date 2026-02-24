@@ -347,9 +347,14 @@ const SEVERITY_DURATION: Record<Severity, number> = {
   critical: 8,
 };
 
-export function generateAttack(stats: CompanyStats, tick: number): SecurityEvent | null {
+export function generateAttack(
+  stats: CompanyStats,
+  tick: number,
+  frequencyMultiplier: number = 1.0,
+  expiryMultiplier: number = 1.0
+): SecurityEvent | null {
   const eligible = ATTACK_TEMPLATES.filter((t) => {
-    const adjustedProb = t.baseProbability * t.modifiers(stats);
+    const adjustedProb = t.baseProbability * t.modifiers(stats) * frequencyMultiplier;
     return Math.random() < adjustedProb * 0.04;
   });
 
@@ -357,6 +362,7 @@ export function generateAttack(stats: CompanyStats, tick: number): SecurityEvent
 
   const template = pickRandom(eligible);
   const severity = pickSeverity(template.severityWeights);
+  const duration = Math.round(SEVERITY_DURATION[severity] * expiryMultiplier);
 
   return {
     id: uuid(),
@@ -366,7 +372,7 @@ export function generateAttack(stats: CompanyStats, tick: number): SecurityEvent
     description: pickRandom(template.descriptions),
     source: pickRandom(template.sources),
     timestamp: tick,
-    expiresAt: tick + SEVERITY_DURATION[severity],
+    expiresAt: tick + duration,
     choices: template.getChoices(severity),
     resolved: false,
   };

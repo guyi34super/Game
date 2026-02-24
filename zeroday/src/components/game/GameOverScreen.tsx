@@ -5,8 +5,12 @@ import { useRouter } from "next/navigation";
 import { Skull, RotateCcw, ArrowLeft } from "lucide-react";
 
 export default function GameOverScreen() {
-  const { gameOverReason, stats, day, company, init } = useGameStore();
+  const { gameOverReason, stats, day, difficulty, init } = useGameStore();
   const router = useRouter();
+
+  const diffLabel = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+  const diffColor =
+    difficulty === "easy" ? "text-neon-green" : difficulty === "medium" ? "text-neon-yellow" : "text-neon-red";
 
   return (
     <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
@@ -27,16 +31,16 @@ export default function GameOverScreen() {
             <div className="text-xl font-bold text-neon-green font-mono">{stats.score.toLocaleString()}</div>
           </div>
           <div className="card-cyber p-3">
+            <div className="text-[10px] text-cyber-dim uppercase">Difficulty</div>
+            <div className={`text-xl font-bold font-mono ${diffColor}`}>{diffLabel}</div>
+          </div>
+          <div className="card-cyber p-3">
             <div className="text-[10px] text-cyber-dim uppercase">Attacks Blocked</div>
             <div className="text-xl font-bold text-neon-green font-mono">{stats.attacksBlocked}</div>
           </div>
           <div className="card-cyber p-3">
             <div className="text-[10px] text-cyber-dim uppercase">Attacks Succeeded</div>
             <div className="text-xl font-bold text-neon-red font-mono">{stats.attacksSucceeded}</div>
-          </div>
-          <div className="card-cyber p-3">
-            <div className="text-[10px] text-cyber-dim uppercase">Money Spent</div>
-            <div className="text-lg font-bold text-neon-yellow font-mono">${stats.moneySpent.toLocaleString()}</div>
           </div>
           <div className="card-cyber p-3">
             <div className="text-[10px] text-cyber-dim uppercase">Money Lost</div>
@@ -47,7 +51,7 @@ export default function GameOverScreen() {
         <div className="flex gap-3 justify-center">
           <button
             onClick={() => {
-              init();
+              init(difficulty);
             }}
             className="btn-cyber text-base px-6 py-2"
           >

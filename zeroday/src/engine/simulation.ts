@@ -1,5 +1,5 @@
 import { v4 as uuid } from "uuid";
-import { GameState, GameLog, SecurityEvent } from "./types";
+import { GameState, GameLog, SecurityEvent, DIFFICULTY_CONFIGS } from "./types";
 import { generateAttack } from "./attacks";
 
 export function createLog(
@@ -36,7 +36,8 @@ export function gameTick(state: GameState): GameState {
     newLogs.push(createLog("info", `Daily revenue: +$${state.company.income.toLocaleString()}`, "Finance", next.tick));
   }
 
-  const attack = generateAttack(state.company, next.tick);
+  const diffConfig = DIFFICULTY_CONFIGS[state.difficulty];
+  const attack = generateAttack(state.company, next.tick, diffConfig.attackFrequencyMultiplier, diffConfig.eventExpiryMultiplier);
   if (attack) {
     newEvents.push(attack);
     next.stats = {
@@ -64,11 +65,12 @@ export function gameTick(state: GameState): GameState {
   }
 
   for (const ev of expiredEvents) {
+    const repLoss = Math.round((ev.severity === "critical" ? 15 : ev.severity === "high" ? 8 : 3) * diffConfig.damageMultiplier);
     next.company = {
       ...next.company,
-      reputation: Math.max(0, next.company.reputation - (ev.severity === "critical" ? 15 : ev.severity === "high" ? 8 : 3)),
+      reputation: Math.max(0, next.company.reputation - repLoss),
     };
-    const moneyLoss = ev.severity === "critical" ? 20000 : ev.severity === "high" ? 10000 : 3000;
+    const moneyLoss = Math.round((ev.severity === "critical" ? 20000 : ev.severity === "high" ? 10000 : 3000) * diffConfig.damageMultiplier);
     next.company.securityBudget = Math.max(0, next.company.securityBudget - moneyLoss);
     next.stats = {
       ...next.stats,

@@ -102,12 +102,95 @@ export type GameLog = {
   source: string;
 };
 
+export type Difficulty = "easy" | "medium" | "hard";
+
+export type DifficultyConfig = {
+  label: string;
+  description: string;
+  attackFrequencyMultiplier: number;
+  damageMultiplier: number;
+  eventExpiryMultiplier: number;
+  startingBudget: number;
+  income: number;
+  startingReputation: number;
+  startingStats: {
+    securityMaturity: number;
+    employeeAwareness: number;
+    patchLevel: number;
+    aiDetectionLevel: number;
+    firewallStrength: number;
+    dataEncryption: number;
+    threatIntelligence: number;
+  };
+};
+
+export const DIFFICULTY_CONFIGS: Record<Difficulty, DifficultyConfig> = {
+  easy: {
+    label: "Easy",
+    description: "Relaxed pace. More budget, fewer and weaker attacks. Great for learning the ropes.",
+    attackFrequencyMultiplier: 0.4,
+    damageMultiplier: 0.6,
+    eventExpiryMultiplier: 1.8,
+    startingBudget: 180000,
+    income: 8000,
+    startingReputation: 90,
+    startingStats: {
+      securityMaturity: 40,
+      employeeAwareness: 50,
+      patchLevel: 60,
+      aiDetectionLevel: 25,
+      firewallStrength: 55,
+      dataEncryption: 45,
+      threatIntelligence: 35,
+    },
+  },
+  medium: {
+    label: "Medium",
+    description: "Balanced challenge. Standard budget and attack frequency. The intended experience.",
+    attackFrequencyMultiplier: 1.0,
+    damageMultiplier: 1.0,
+    eventExpiryMultiplier: 1.0,
+    startingBudget: 100000,
+    income: 5000,
+    startingReputation: 80,
+    startingStats: {
+      securityMaturity: 25,
+      employeeAwareness: 35,
+      patchLevel: 45,
+      aiDetectionLevel: 10,
+      firewallStrength: 40,
+      dataEncryption: 30,
+      threatIntelligence: 20,
+    },
+  },
+  hard: {
+    label: "Hard",
+    description: "Relentless attacks, tight budget, minimal defenses. Only for seasoned operators.",
+    attackFrequencyMultiplier: 2.0,
+    damageMultiplier: 1.6,
+    eventExpiryMultiplier: 0.6,
+    startingBudget: 60000,
+    income: 3000,
+    startingReputation: 65,
+    startingStats: {
+      securityMaturity: 12,
+      employeeAwareness: 20,
+      patchLevel: 30,
+      aiDetectionLevel: 5,
+      firewallStrength: 25,
+      dataEncryption: 15,
+      threatIntelligence: 10,
+    },
+  },
+};
+
 export type GameState = {
   tick: number;
   gameSpeed: number;
   paused: boolean;
   gameOver: boolean;
   gameOverReason?: string;
+  difficulty: Difficulty;
   day: number;
   hour: number;
   company: CompanyStats;

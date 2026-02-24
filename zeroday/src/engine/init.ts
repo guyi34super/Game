@@ -1,5 +1,5 @@
 import { v4 as uuid } from "uuid";
-import { GameState, Employee, NetworkNode } from "./types";
+import { GameState, Employee, NetworkNode, Difficulty, DIFFICULTY_CONFIGS } from "./types";
 import { generateEmployeeName, generateDepartmentAndRole, generateNodeName } from "./names";
 import { RESEARCH_TREE } from "./research";
 
@@ -31,7 +31,8 @@ function createNetworkNode(type: NetworkNode["type"]): NetworkNode {
   };
 }
 
-export function createInitialState(): GameState {
+export function createInitialState(difficulty: Difficulty = "medium"): GameState {
+  const config = DIFFICULTY_CONFIGS[difficulty];
   const employees: Employee[] = Array.from({ length: 25 }, () => createEmployee());
   const network: NetworkNode[] = [
     createNetworkNode("firewall"),
@@ -53,22 +54,23 @@ export function createInitialState(): GameState {
     gameSpeed: 1,
     paused: false,
     gameOver: false,
+    difficulty,
     day: 1,
     hour: 8,
     company: {
-      securityBudget: 100000,
-      maxBudget: 200000,
-      income: 5000,
-      reputation: 80,
+      securityBudget: config.startingBudget,
+      maxBudget: config.startingBudget * 2,
+      income: config.income,
+      reputation: config.startingReputation,
       maxReputation: 100,
-      securityMaturity: 25,
-      employeeAwareness: 35,
-      patchLevel: 45,
-      aiDetectionLevel: 10,
-      firewallStrength: 40,
+      securityMaturity: config.startingStats.securityMaturity,
+      employeeAwareness: config.startingStats.employeeAwareness,
+      patchLevel: config.startingStats.patchLevel,
+      aiDetectionLevel: config.startingStats.aiDetectionLevel,
+      firewallStrength: config.startingStats.firewallStrength,
       incidentResponseTime: 10,
-      dataEncryption: 30,
-      threatIntelligence: 20,
+      dataEncryption: config.startingStats.dataEncryption,
+      threatIntelligence: config.startingStats.threatIntelligence,
     },
     employees,
     network,

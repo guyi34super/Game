@@ -1,10 +1,10 @@
 import { create } from "zustand";
-import { GameState } from "@/engine/types";
+import { GameState, Difficulty } from "@/engine/types";
 import { createInitialState } from "@/engine/init";
 import { gameTick, resolveEvent } from "@/engine/simulation";
 
 type GameStore = GameState & {
-  init: () => void;
+  init: (difficulty?: Difficulty) => void;
   tick: number;
   doTick: () => void;
   togglePause: () => void;
@@ -19,7 +19,10 @@ type GameStore = GameState & {
 export const useGameStore = create<GameStore>((set, get) => ({
   ...createInitialState(),
 
-  init: () => set(createInitialState()),
+  init: (difficulty?: Difficulty) => {
+    const diff = difficulty ?? get().difficulty ?? "medium";
+    set(createInitialState(diff));
+  },
 
   doTick: () => {
     const state = get();
